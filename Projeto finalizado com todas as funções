@@ -1,0 +1,529 @@
+# -*- coding: utf-8
+import getpass
+import uuid
+import hashlib
+import datetime
+from datetime import date #por enquanto só precisa dessa
+from datetime import time
+from datetime import datetime, timedelta, timezone
+# --------------------------------------------------[CRIPTOGRAFIA]--------------------------------------------------------------------------------------------------------
+
+def criptografar(cod_senha):
+    salt = uuid.uuid4().hex #esta pegando números aleatorios para a senha não ficar visivel
+    return hashlib.sha256(salt.encode()+ cod_senha.encode()).hexdigest()+":"+salt
+
+#--------------------------------------------------[CONFERINDO A SENHA]--------------------------------------------------------------------------------------------------
+def Conferindosenha(cod_senha,senha_digitada):
+    senha1 = cod_senha #senha criptografada do arquivo
+    aa, salt = senha1.split(':') #dividindo a senha do arquivo no ":" para depois fazer a comparação
+    return aa == hashlib.sha256(salt.encode()+senha_digitada.encode()).hexdigest() #checando se a criptografia vai ficar igual se somar com a senha digitada
+
+def Comparando_senha(cod_mat,cod_senha):
+    acesso = open('Professores.txt', 'r')
+    a = cod_senha
+    texto = acesso.readlines()
+    k = 2
+    while k < len(texto):
+        n_matricula = ((texto[k])[11:len(texto[k])-1]) #estou pegando o numero da Matricula da lista.
+        #print(n_matricula)
+        if cod_mat == n_matricula: #usando esse if para achar o número de matrícula digitado pelo úsuario
+            break
+        k+=3
+    k -= 1
+    senha1 = ((texto[k])[7:len(texto[k])-1])
+    if Conferindosenha(senha1,a) == True: #aqui ele ta pegando a senha que o úsuario digitou e vendo se bate com a do arquivo
+        acesso.close()
+        return True
+    acesso.close()
+#----------------------------------------------[MATRICULA JÁ EXISTE ? ]----------------------------------------------------------------------------------------------------
+def Matricula_existe(cod_mat): #essa função serve para que o úsuario não possa cadastrar mais de duas matriculas iguais
+    acesso = open('Professores.txt', 'r')
+    texto = acesso.readlines()
+    k = 2
+    while k < len(texto):
+        n_matricula = ((texto[k])[11:len(texto[k])-1]) #estou pegando o numero da Matricula da lista.
+        #print (n_matricula)
+        if cod_mat == n_matricula:
+            acesso.close()
+            return True
+        k += 3
+    acesso.close()
+    return False
+
+#-----------------------------------[MATRICULANDO E CADASTRANDO O PROFESSOR]-----------------------------------------------------------------------------------------------
+
+def matricula_professor():
+    j = 0
+    x = open("Professores.txt" , "a")
+    professor = input("Bem vindo Professor(a) digite seu nome: ")
+    senha = getpass.getpass(prompt='Crie uma senha: ',stream=None)
+    #senha = input("Crie uma senha: ")
+    criptografia = criptografar(senha)
+    while j < 1:
+        matricula = input("Digite o número da sua matrícula: ")
+        if Matricula_existe(matricula) == True:
+            print("Ops!! Já existe algum outro professor(a) com essa matrícula pfv tente novamente\n")
+        else:
+            print("Matrícula cadastrada com sucesso\n")
+            j+=1
+    x.write("Professor: " +professor+ "\n" )
+    x.write("Senha: "+criptografia+ "\n")
+    x.write("Matricula: " +matricula+ "\n")
+    x.close()
+
+#------------------------------------------[PATRIMONIO EXISTE?]----------------------------------------------------------------------------------------------------------
+def Patrimonio_Existe(cod_patrimonio): #essa função serve para que o úsuario não possa cadastrar mais de dois patrimonios iguais
+    acesso = open('Patrimonio.txt', 'r')
+    texto = acesso.readlines()
+    k = 1
+    while k < len(texto):
+        n_patrimonio = ((texto[k])[8:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+        #print (n_patrimonio)
+        if cod_patrimonio == n_patrimonio:
+            acesso.close()
+            return True
+        k+=2
+    acesso.close()
+    return False
+#------------------------------------------[REGISTRANDO PATRIMONIO]------------------------------------------------------------------------------------------------------
+def registro_de_patrimonio():
+    j = 0
+    x = open ("Patrimonio.txt" , "a")
+    equipamento = input("Digite o nome do equipamento na qual você deseja resistrar: ")
+    while j < 1:
+        codigo = input("Digite o código do equipamento: ")
+        if Patrimonio_Existe(codigo) == True:
+            print("Código já existe digite novamente\n")
+        else:
+            print("Código cadastrado com sucesso\n")
+            j += 1
+    x.write("Equipamento: "+equipamento+"\n")
+    x.write("Codigo: "+codigo+"\n")
+    x.close()
+#----------------------------------------------[EXISTE MATRICULA]-------------------------------------------------------------------------------------------------------
+def Existe_Matricula(cod_mat):#essa função serve para checar se existe a matrícula que o úsuario digitol
+    acesso = open('Professores.txt', 'r')
+    texto = acesso.readlines()
+    k = 2
+    while k < len(texto):
+        n_matricula = ((texto[k])[11:len(texto[k])-1]) #estou pegando o numero da Matricula da lista.
+        #print (n_patrimonio)
+        if cod_mat == n_matricula:
+            acesso.close()
+            return True
+        k+=3
+    acesso.close()
+    return False
+
+#---------------------------------------------[EXISTE PATRIMONIO]-------------------------------------------------------------------------------------------------------
+def Existe_Patrimonio(cod_patrimonio):#essa função serve para checar se existe o código do patrimonio que o úsuario digitol
+    acesso = open('Patrimonio.txt', 'r')
+    texto = acesso.readlines()
+    k = 1
+    while k < len(texto):
+        n_patrimonio = ((texto[k])[8:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+        #print (n_patrimonio)
+        if cod_patrimonio == n_patrimonio:
+            acesso.close()
+            return True
+        k+=2
+    acesso.close()
+    return False
+
+#----------------------------------------[CONFERINDO DATA]---------------------------------------------------------------------------------------------------------------
+def conferindo_data(cod_data): #ESSA FUNÇÃO SERVE PARA CONFERIR SE A DATA QUE O ÚSUARIO É VALIDA
+    data = cod_data
+    a = "DD/MM/AAAA"
+    if len(data) == len(a) and data[2:3] == a[2:3] and data[5:6] == a[5:6]:
+        if data[0:1] == '4' or data[0:1] == '5' or data[0:1] == '6' or data[0:1] == '7' or data[0:1] == '8' or data[0:1] == '9':
+            return False
+        elif data[0:1] == '3' and data[1:2] == '2' or data[0:1] == '3' and data[1:2] == '3' or data[0:1] == '3' and data[1:2] == '4' or data[0:1] == '3' and data[1:2] == '5' or data[0:1] == '3' and data[1:2] == '6' or data[0:1] == '3' and data[1:2] == '7' or data[0:1] == '3' and data[1:2] == '8' or data[0:1] == '3' and data[1:2] == '9':
+            return False
+        elif data[3:4] == '2' or data[3:4] == '3' or data[3:4] == '4' or data[3:4] == '5' or data[3:4] == '6' or data[3:4] == '7' or data[3:4] == '8' or data[3:4] == '9':
+            #print(data[3:4])
+            return False
+        elif data[3:4] == '1' and data[4:5] == '3' or data[3:4] == '1' and data[4:5] == '4' or data[3:4] == '1' and data[4:5] == '5' or data[3:4] == '1' and data[4:5] == '6' or data[3:4] == '1' and  data[4:5] == '7' or data[3:4] == '1' and data[4:5] == '8' or data[3:4] == '1' and data[4:5] == '9':
+            return False
+        else:
+            data2 = datetime.strptime(data, "%d/%m/%Y")
+            data2 = '{}/{}/{}'.format(data2.day,data2.month,data2.year)
+        if data == data2:
+            return data
+        elif data < data2:
+            return data
+#-----------------------------------------[CONFERINDO HORA]----------------------------------------------------------------------------------------------------------------
+def conferindo_hora(cod_hora): #ESSA FUNÇÃO SERVE PARA CONFERIR SE A HORA QUE O ÚSUARIO É VALIDA
+    n = cod_hora
+    hora = "HH:MM"
+    k = 0
+    if len(n) == len(hora) and n[2:3] == hora[2:3]:
+        if n[0:1] == '3' or n[0:1] == '4' or n[0:1] == '5' or n[0:1] == '6' or n[0:1] == '7' or n[0:1] == '8' or n[0:1] == '9':
+            return False
+        elif n[0:1] == '2' and n[1:2] == '4' or n[0:1] == '2' and n[1:2] == '5' or n[0:1] == '2' and n[1:2] == '6' or n[0:1] == '2' and n[1:2] == '7' or n[0:1] == '2' and n[1:2] == '8' or n[0:1] == '2' and n[1:2] == '9':
+            return False
+        elif n[3:4] == '6' or n[3:4] == '7' or n[3:4] == '8' or n[3:4] == '9':
+            return False
+        else:
+            now = datetime.strptime(n, "%H:%M")
+            k += 1
+    if k == 1:
+        return n
+#----------------------------------[CONTABILIZAR RETIRADAS] ----------------------------------------------------------------------------------------------------------------
+def contabilizarRetiradas(cod_pat): #ESSA FUNÇÃO SERVE PARA SABER QUANTAS RETIRADAS HOUVE
+    cont_retirada = 0
+    cont_devolucao = 0
+    acesso = open('acesso.txt', 'r')
+    texto = acesso.readlines()
+    k = 1
+    while k < len(texto):
+        n_patrimonio = ((texto[k])[12:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+        #print (n_patrimonio)
+        if cod_pat == n_patrimonio:
+            k+=1
+            tipo_acesso = ((texto[k])[16:len(texto[k])-1])
+            if tipo_acesso == 'retirada':
+                cont_retirada+=1
+            elif tipo_acesso == 'devolucao':
+                cont_devolucao+=1
+            k+=4
+        else:
+            k+=5
+
+    acesso.close()
+    if cont_retirada == cont_devolucao:
+            return 1
+    else:
+        return -1
+
+#---------------------------------------[LISTAR PATRIMONIO DISPONVEL PARA RETIRADAS]--------------------------------------------------------------------------------------------------------------
+def listarPatDispRetirada(): #ESSA FUNÇÃO SERVE PARA MOSTRAR QUAL DOS PATRIMONIOS ENTÃO LIVRES PARA UM PROFESSOR PEGAR
+    mostrarPatrim = 'Patrimônios disponíveis para retirada: \n'
+    print (mostrarPatrim)
+    pat_disponiveis = []
+    acesso = open('acesso.txt', 'r')
+    texto = acesso.readlines()
+    k = 1
+    while k < len(texto):
+        n_patrimonio = ((texto[k])[12:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+        #print (n_patrimonio)
+        if contabilizarRetiradas(n_patrimonio) == 1:
+            if(pat_disponiveis.count(n_patrimonio)) == 0:
+                pat_disponiveis.append(n_patrimonio)
+        k+=5
+    #Agora vou acessar o arquivo acesso e pegar a lista de patrimonios NÃO-DISPONIVEIS (ESPERANDO DEVOLUCAO)
+    pat_devolucao = []
+    k = 1
+    while k < len(texto):
+        n_patrimonio = ((texto[k])[12:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+        n_matricula = ((texto[k-1])[11:len(texto[k-1])-1])
+        if contabilizarRetiradas(n_patrimonio) == -1:
+            if(pat_devolucao.count(n_patrimonio)) == 0:
+                pat_devolucao.append(n_patrimonio)
+        k+=5
+    acesso.close()
+
+    #Agora eu vou acessar o arquivo Patrimonios e completar minha lista de Pat Disponiveis
+    patrimonios = open('Patrimonio.txt', 'r')
+    texto2 = patrimonios.readlines()
+    k = 1
+    while k < len(texto2):
+        n_patrimonio = ((texto2[k])[8:len(texto2[k])-1]) #estou pegando o numero do patrimonio da lista.
+        if pat_devolucao.count(n_patrimonio) == 0 and pat_disponiveis.count(n_patrimonio) == 0: #Só add os que estão disponiveis e nao estao add na lista de disponiveis
+            pat_disponiveis.append(n_patrimonio)
+        k+=2
+    patrimonios.close()
+
+    #Já tenho minha lista com todos os patrimonios disponiveis, agora só imprimi-los
+    for i in pat_disponiveis:
+        mostrarPatrim = acharPatrimonio(i)
+        print (mostrarPatrim) #em vez de retornar uma string, ele imprime logo pra não ocupar a mem RAM do PC
+
+#-----------------------------[LISTAR PATRIMONIO PARA DEVOLUÇÃO]----------------------------------------------------------------------------------------------------------
+def listarPatParaDevolucao():
+        mostrarPatrim = 'Patrimônios para devolucao: \n'
+        print (mostrarPatrim)
+        pat_devolucao = []
+        acesso = open('acesso.txt', 'r')
+        texto = acesso.readlines()
+        k = 1
+        while k < len(texto):
+            n_patrimonio = ((texto[k])[12:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+            n_matricula = ((texto[k-1])[11:len(texto[k-1])-1])
+            if contabilizarRetiradas(n_patrimonio) == -1:
+                if(pat_devolucao.count(n_patrimonio)) == 0:
+                    pat_devolucao.append(n_patrimonio)
+                    mostrarPatrim = acharPatrimonio(n_patrimonio) + acharProf(n_matricula) + '\n'
+                    print (mostrarPatrim)
+            k+=5
+        acesso.close()
+#        return mostrarPatrim
+#---------------------------[ACHAR PROFESSOR]-------------------------------------------------------------------------------------------------------------------------
+def acharProf(matricula):
+    retornaProf = ''
+    professores = open('Professores.txt', 'r')
+    texto = professores.readlines()
+    k = 2
+    while k < len(texto):
+        mat = ((texto[k])[11:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+        if(mat == matricula):
+            retornaProf += texto[k] + texto[k-2]
+            professores.close() #se eu achar, já retorno
+            return retornaProf
+        k+=3
+    professores.close()
+    return retornaProf
+
+#-----------------------------[ACHAR PATRIMONIO]----------------------------------------------------------------------------------------------------------------------------------------
+def acharPatrimonio(cod_pat):
+    retornaPat = ''
+    patrimonios = open('Patrimonio.txt', 'r')
+    texto = patrimonios.readlines()
+    k = 1
+    while k < len(texto):
+        n_patrimonio = ((texto[k])[8:len(texto[k])-1]) #estou pegando o numero do patrimonio da lista.
+        if cod_pat == n_patrimonio:
+            retornaPat += texto[k-1] + texto[k]
+            patrimonios.close()
+            return retornaPat
+        k+=2
+    patrimonios.close()
+    return retornaPat
+#---------------------------------[PATRIMONIO MAIS UTILIZADOS]-------------------------------------------------------------------------------------------------------------
+def patMaisUtilizados(yDias):
+    patMaisUtilizados = []
+    acesso = open('acesso.txt', 'r')
+    texto = acesso.readlines()
+    k = 3
+    while k < len(texto):
+        data = ((texto[k])[6:len(texto[k])-1])
+        tipoAcesso = ((texto[k-1])[16:len(texto[k-1])-1])
+        n_patrimonio = ((texto[k-2])[12:len(texto[k-2])-1])
+        if contagemDias(data) <= yDias and tipoAcesso == 'retirada':
+            patMaisUtilizados.append(n_patrimonio)
+        k+=5
+    acesso.close()
+    listaOrdenada = ordenaListaPatMaisUtilizados(patMaisUtilizados)
+    pat  = 'Patrimonios mais utilizados nos ultimos ' + str(yDias) + ' dias'
+    print (pat)
+    for k in range(len(listaOrdenada)):
+        pat = str(k+1) + '. ' + acharPatrimonio(listaOrdenada[k])
+        print (pat)
+
+
+#----------------------------------[CONTAGEM DIAS]----------------------------------------------------------------------------------------------------------------------
+def contagemDias(data):
+    data_formatada = datetime.strptime(data, '%d/%m/%Y').date() #Converte a string para o formato data AAAA/MM/DD
+    hoje  = date.today()
+    dias = ((hoje - data_formatada).days) #pega os dias de diferença das datas
+    return dias
+
+#----------------------------------[ORDENA LISTA DE PATRIMONIO MAIS UTILIZADOS]----------------------------------------------------------------------------------------------------
+def ordenaListaPatMaisUtilizados(patMaisUtilizados):
+    listaOrdenada = []
+    maior_cont = 0
+    maior_nPatrimonio = ''
+    while len(patMaisUtilizados) > 0:
+        for k in patMaisUtilizados:
+            if maior_cont < patMaisUtilizados.count(k):
+                maior_cont = patMaisUtilizados.count(k)
+                maior_nPatrimonio = k
+        #achei o maior
+        listaOrdenada.append(maior_nPatrimonio)
+
+        for l in range(maior_cont): #tira o maior elemento na quantidade de vezes que ele aparece
+            patMaisUtilizados.remove(maior_nPatrimonio)
+
+        maior_cont = 0
+    return listaOrdenada
+#----------------------------------[LISTAR PROFESSOR QUE FICARAM COM O PATRIMONIO]----------------------------------------------------------------------------------------------------------------------------------
+def listarProfQueFicaramComPat(xHoras, yDias):
+    mostrarPatrim = 'Professores que ficaram com os patrimonios por mais de ' + str(xHoras) + ' horas nos ultimos ' + str(yDias) + ' dias:\n'
+    print (mostrarPatrim)
+
+    acesso = open('acesso.txt', 'r')
+    texto = acesso.readlines()
+    k = 3
+    while k < len(texto):
+        data = ((texto[k])[6:len(texto[k])-1])
+        hora = ((texto[k+1])[5:len(texto[k+1])-1]) #pego a hora com o espaco
+        tipoAcesso = ((texto[k-1])[16:len(texto[k-1])-1])
+        n_patrimonio = ((texto[k-2])[12:len(texto[k-2])-1])
+        n_matricula = ((texto[k-3])[11:len(texto[k-3])-1])
+        if contagemDias(data) <= yDias and tipoAcesso == 'retirada':
+            #tenho que procurar a data e hora de devolucao do patrimonio
+            dataHora_Dev = procurarDataDevolucao(n_matricula, n_patrimonio, yDias)
+            dataHora_Ret = data + hora
+            horas = contagemHoras(dataHora_Ret, dataHora_Dev)
+
+            if horas >= xHoras:
+                mostrarPatrim = acharProf(n_matricula) + acharPatrimonio(n_patrimonio) + '\n'
+                print (mostrarPatrim)
+        k+=5
+    acesso.close()
+#----------------------------------[PROCURAR DATA DE DEVOLUÇÃO]--------------------------------------------------------------------------------------------------------------------------------------
+def procurarDataDevolucao(matricula, cod_pat, yDias):
+    acesso = open('acesso.txt', 'r')
+    texto = acesso.readlines()
+    k = 3
+    while k < len(texto):
+        data = ((texto[k])[6:len(texto[k])-1])
+        hora = ((texto[k+1])[5:len(texto[k+1])-1]) #pego a hora com o espaco
+        tipoAcesso = ((texto[k-1])[16:len(texto[k-1])-1])
+        n_patrimonio = ((texto[k-2])[12:len(texto[k-2])-1])
+        n_matricula = ((texto[k-3])[11:len(texto[k-3])-1])
+        if contagemDias(data) <= yDias:
+            if matricula == n_matricula and cod_pat == n_patrimonio and tipoAcesso == 'devolucao':
+                acesso.close()
+                return data + hora
+        k+=5
+    acesso.close()
+    return ''
+#------------------------------[CONTAGEM HORAS]----------------------------------------------------------------------------------------------------------------------------
+def contagemHoras(data1, data2):
+    formato = '%d/%m/%Y %H:%M'
+    data_formatada1 = datetime.strptime(data1, formato)
+    if len(data2) > 0:
+        data_formatada2 = datetime.strptime(data2, formato)
+    else: #se nao tiver data de volta, ele pega a data e horario atual com o fuso-horario de pernambuco
+        dataEHora_hoje = datetime.now()
+        diferenca = timedelta(hours=-3)
+        fuso_horario = timezone(diferenca)
+        data_converter = dataEHora_hoje.astimezone(fuso_horario) #converte o tempo da máquina para o de são paulo
+        data_formatada2 = data_converter.strftime('%Y/%m/%d %H:%M')
+        data_formatada2 = datetime.strptime(data_formatada2, '%Y/%m/%d %H:%M')
+
+    segundos = (data_formatada2 - data_formatada1).total_seconds()
+    horas = segundos/3600 #tá pegando a divisao inteira
+    return horas
+#-------------------------------[[CADASTRAR ACESSO]--------------------------------------------------------------------------------------------------------
+
+def cadastrarAcesso():
+    k = 0
+    acesso = open ("acesso.txt" , "a")
+    while k < 5:
+        matricula = input('Digite a Matricula: ')
+        if Existe_Matricula(matricula) == True:
+            #senha = input("Digite sua senha: ")
+            senha = getpass.getpass(prompt='Digite sua senha: ',stream=None)
+            if Comparando_senha(matricula,senha) == True:
+                    print("Senha correta\n")
+                    k+=1
+            else:
+                    print("Senha incorreta !\n")
+                    break
+        else:
+            print("Você ainda não é matriculado !!!")
+            print("Volte ao menu e matricule-se.\n")
+            break
+        patrimonio = input('Digite o código do patrimonio: ')
+        if Existe_Patrimonio(patrimonio) == True:
+                k+=1
+        else:
+                print("Código de patrimonio não registrado !!!")
+                print("Volte ao menu e registre esse patrimonio.\n")
+                break
+        if contabilizarRetiradas(patrimonio) == 1:
+                k+=1
+        else:
+            print("Patrimonio não está disponível para retirada !!!\n")
+            break
+        tipoAcesso = input('Digite 1 para fazer uma Retirada ou 2 Para Devolução de equipamento: ')
+        if tipoAcesso ==  '1':
+                k+=1
+        elif tipoAcesso == '2':
+                k+=1
+        else:
+                print("Opção invalida!!!\n")
+        dataAcesso = input('Digite a data de acesso no formato DD/MM/AAAA: ')
+        if dataAcesso == conferindo_data(dataAcesso):
+                k+=1
+        else:
+                print("Data invalida!!!")
+        horaAcesso = input('Digite a hora do acesso no formato HH:MM: ')
+        if horaAcesso == conferindo_hora(horaAcesso):
+                print("\n")
+                k+=1
+        else:
+                print("Hora invalida!!!\n")
+        if k == 6:
+            acesso.write("Matricula: "+matricula+"\n")
+            acesso.write("Patrimonio: "+patrimonio+"\n")
+            if tipoAcesso ==  '1':
+                    acesso.write("Tipo de acesso: retirada\n")
+            elif tipoAcesso == '2':
+                    acesso.write("Tipo de acesso: devolucao\n")
+            acesso.write("Data: "+dataAcesso+"\n")
+            acesso.write("Hora: "+horaAcesso+"\n")
+            print ('Acesso cadastrado com sucesso!\n')
+        if k < 6:
+            print("Alguma opção acima esta invalida !!!\n")
+            novamente = input("Digite 1 para digitar novamente ou 2 para sair da opção acesso\n")
+            if novamente == '1':
+                k  = 0
+            elif novamente == '2':
+                k += 5
+    acesso.close()
+#---------------------------[FUNCAO PARA CHECAR SE O NUMERO É INTEIRO]-----------------------------------------------------------------------------------------------------------------
+def confereInteiro(inteiro):
+    try:
+        inteiro = int (inteiro)
+        return inteiro
+    except ValueError:
+        return (-1)
+
+
+#---------------------------[MENU COM TODAS AS OPÇOES]-----------------------------------------------------------------------------------------------------------------
+def menu ():
+    print ("Digite a Opcao Desejada")
+    print ("Digite 1 para registrar um patrimonio")
+    print ("Digite 2 para registrar um professor")
+    print ("Digite 3 para cadastrar um acesso")
+    print ("Digite 4 para listar patrimônio aguardando devolução")
+    print ("Digite 5 para listar patrimônio disponivel para retirada")
+    print ("Digite 6 para listagem dos professores que ficaram com o patrimônio por mais de X horas nos últimos y dias")
+    print ("Digite 7 para listagem dos patrimônios mais utilizados nos últimos Y dias")
+    print ("Digete 8 para encerrar o programa")
+    try:
+        opcao = int (input(''))
+        return opcao
+    except ValueError:
+        print ('A entrada digitada é inválida!')
+        return (-1)
+
+
+#---------------------[WHILE CHAMAND0 O MENU]--------------------------------------------------------------------------------------------------------------------------------
+
+opção = menu()
+
+while(opção != 8):
+    if opção == 1:
+        registro_de_patrimonio()
+    elif opção == 2:
+        matricula_professor()
+    elif opção == 3:
+        cadastrarAcesso()
+    elif opção == 4:
+        listarPatParaDevolucao()
+    elif opção == 5:
+        listarPatDispRetirada()
+    elif opção == 6:
+        xHoras = input("horas: ")
+        if confereInteiro(xHoras) != -1:
+            xHoras = confereInteiro(xHoras)
+            yDias = input("Dias: ") #Se as horas estão certas, entao ele pede a outra entrada
+            if confereInteiro(yDias) != -1:
+                yDias = confereInteiro(yDias)
+                listarProfQueFicaramComPat(xHoras, yDias)
+            else:
+                print ('A entrada digitada é inválida!')
+        else:
+            print ('A entrada digitada é inválida!')
+
+    elif opção == 7:
+        Dias = input("Digite a quantidade de dias que deseja saber: ")
+        if confereInteiro(Dias) != -1:
+            Dias = confereInteiro(Dias)
+            patMaisUtilizados(Dias)
+        else:
+            print ('A entrada digitada é inválida!')
+    opção = menu()
